@@ -9,7 +9,7 @@ struct Wrapper{
   };
 
 
-float f(float * in_phi, float * out_phi,int ite);
+float f(float * in_phi, float * out_phi, float * out_en, int ite);
 int modulo(int x,int N);
 
 
@@ -20,7 +20,7 @@ int main(void){
   return 0;
 }
 
-float f(float * in_phi, float * out_phi, int ite){
+float f(float * in_phi, float * out_phi, float * out_en, int ite){
   float a,k,dx,dt,m;
   int iterations, dimensions,i,j,it;
   a = 0.1;
@@ -91,6 +91,7 @@ float f(float * in_phi, float * out_phi, int ite){
       }
 
   memcpy(out_phi,phi,sizeof(phi));
+  memcpy(out_en,en,sizeof(en));
   return ensum;
 }
 
