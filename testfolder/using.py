@@ -8,7 +8,10 @@ from matplotlib.animation import FuncAnimation
 
 class Anim(object):
 
-    def __init__(self, sweeps):
+
+
+
+    def chaan_hillard(self,sweeps):
         self.sweeps = sweeps
         self.count = 0
         fig, ax = plt.subplots()
@@ -49,5 +52,51 @@ class Anim(object):
                 else:
                     self.phi[i,j] = -0.5#+np.random.uniform(-0.01,0.01)
 
+    def jacobi(self, treshold, rho):
+        phi,conv,Exj,Eyj,value = example_test.j(rho, treshold)
+        print(value)
+        y = np.zeros(value)
+        for i in range(value):
+            y[i] = conv[i]
+        cut = np.zeros((50,50))
+        xcutj = np.zeros((50,50))
+        ycutj = np.zeros((50,50))
+        for i in range(50):
+            for j in range(50):
+                    cut[i,j] =  phi[i,j,25]
+                    xcutj[i,j] =  Exj[i,j,1]
+                    ycutj[i,j] =  Eyj[i,j,1]
+        plt.quiver(xcutj,ycutj)#, scale_units='xy')
+        plt.show()
+        im = plt.imshow(cut, cmap = 'plasma')
+        plt.colorbar()
+        plt.show()
+        plt.plot(np.arange(0,value,1),y)
+        plt.show()
 
-A=Anim(100)
+    def gauss_seidel(self,treshold,rho):
+        phig,convg,Exg,Eyg,valueg = example_test.g(rho,treshold)
+        print(valueg)
+        yg = np.zeros(valueg)
+        for i in range(valueg):
+            yg[i] = convg[i]
+        cutg = np.zeros((50,50))
+        xcutg = np.zeros((50,50))
+        ycutg = np.zeros((50,50))
+        for i in range(50):
+            for j in range(50):
+                    cutg[i,j] =  phig[i,j,25]
+                    xcutg[i,j] =  Exg[i,j,1]
+                    ycutg[i,j] =  Eyg[i,j,1]
+        plt.quiver(xcutg,ycutg)#, scale_units='xy')
+        plt.show()
+        im = plt.imshow(cutg, cmap = 'plasma')
+        plt.colorbar()
+        plt.show()
+        plt.plot(np.arange(0,valueg,1),yg)
+        plt.show()
+
+
+rho = np.zeros((50,50,50))
+rho[25,25,25] = 1
+A=Anim().jacobi(0.001, rho)
