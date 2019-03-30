@@ -11,8 +11,9 @@ struct Wrapper{
 
 float f(float * in_phi, float * out_phi, float * out_en, int ite);
 int modulo(int x,int N);
-int j(float * in_rhoj,float * out_phij, float * out_conv,float * out_Exj, float * out_Eyj, float treshold);
-int g(float * in_rhog, float * out_phig, float * out_convg, float * out_Exg, float * out_Eyg, float tresholdg);
+int j(float * in_rhoj,float * out_phij, float * out_conv,float * out_Exj, float * out_Eyj, float treshold, int field);
+int g(float * in_rhog, float * out_phig, float * out_convg, float * out_Exg, float * out_Eyg, float tresholdg, int field);
+int r(float * in_rhog, float * out_phig, float * out_convg, float * out_Exg, float * out_Eyg, float tresholdg, int field, float dphi);
 
 
 int main(void){
@@ -96,7 +97,7 @@ float f(float * in_phi, float * out_phi, float * out_en, int ite){
   return ensum;
 }
 
-int j(float * in_rhoj,float * out_phij, float * out_conv, float * out_Exj, float * out_Eyj, float treshold){
+int j(float * in_rhoj,float * out_phij, float * out_conv, float * out_Exj, float * out_Eyj, float treshold, int field){
 
   int i,j,k, it;
   int dimensions = 50;
@@ -107,6 +108,8 @@ int j(float * in_rhoj,float * out_phij, float * out_conv, float * out_Exj, float
   float Ex[50][50][50] = {{{0}}};
   float Ey[50][50][50] = {{{0}}};
   float Ez[50][50][50] = {{{0}}};
+  float Mx[50][50][50] = {{{0}}};
+  float My[50][50][50] = {{{0}}};
   double sum = 0;
   double diff = 1;
   float conv[10000] = {0};
@@ -141,18 +144,33 @@ int j(float * in_rhoj,float * out_phij, float * out_conv, float * out_Exj, float
     conv[it] = diff;
     it++;
   }
+  if( field == 0){
 
   for(i=0 ; i<dimensions ; i++){
       for(j=0 ; j<dimensions ; j++){
         for(k=0 ; k<dimensions ; k++){
           Ex[i][j][k] = -1*((phi[modulo(i+1,dimensions)][j][k]-phi[modulo(i-1,dimensions)][j][k])/2);
           Ey[i][j][k] = -1*((phi[i][modulo(j+1,dimensions)][k]-phi[i][modulo(j-1,dimensions)][k])/2);
-          Ez[i][j][k] = -1*((phi[i][j][modulo(k+1,dimensions)]-phi[i][j][modulo(k-1,dimensions)])/2 );
+          Ez[i][j][k] = -1*((phi[i][j][modulo(k+1,dimensions)]-phi[i][j][modulo(k-1,dimensions)])/2);
         }
       }
     }
     memcpy(out_Exj,Ex,sizeof(Ex));
     memcpy(out_Eyj,Ey,sizeof(Ey));
+  }
+  else{
+  for(i=0 ; i<dimensions ; i++){
+      for(j=0 ; j<dimensions ; j++){
+        for(k=0 ; k<dimensions ; k++){
+          My[i][j][k] = -1*((phi[modulo(i+1,dimensions)][j][k]-phi[modulo(i-1,dimensions)][j][k])/2);
+          Mx[i][j][k] = 1*((phi[i][modulo(j+1,dimensions)][k]-phi[i][modulo(j-1,dimensions)][k])/2);
+        }
+      }
+    }
+    memcpy(out_Exj,Mx,sizeof(Mx));
+    memcpy(out_Eyj,My,sizeof(My));
+  }
+
     memcpy(out_conv,conv,sizeof(conv));
     memcpy(out_phij,phi,sizeof(phi));
 
@@ -160,7 +178,7 @@ int j(float * in_rhoj,float * out_phij, float * out_conv, float * out_Exj, float
 
 }
 
-int g(float * in_rhog,float * out_phig, float * out_convg, float * out_Exg, float * out_Eyg, float tresholdg){
+int g(float * in_rhog,float * out_phig, float * out_convg, float * out_Exg, float * out_Eyg, float tresholdg, int field){
 
   int i,j,k, it;
   int dimensions = 50;
@@ -171,6 +189,8 @@ int g(float * in_rhog,float * out_phig, float * out_convg, float * out_Exg, floa
   float Ex[50][50][50] = {{{0}}};
   float Ey[50][50][50] = {{{0}}};
   float Ez[50][50][50] = {{{0}}};
+  float Mx[50][50][50] = {{{0}}};
+  float My[50][50][50] = {{{0}}};
   double sum = 0;
   double diff = 1;
   float conv[10000] = {0};
@@ -207,17 +227,115 @@ int g(float * in_rhog,float * out_phig, float * out_convg, float * out_Exg, floa
     it++;
   }
 
+  if( field == 0){
+
   for(i=0 ; i<dimensions ; i++){
       for(j=0 ; j<dimensions ; j++){
         for(k=0 ; k<dimensions ; k++){
           Ex[i][j][k] = -1*((phi[modulo(i+1,dimensions)][j][k]-phi[modulo(i-1,dimensions)][j][k])/2);
           Ey[i][j][k] = -1*((phi[i][modulo(j+1,dimensions)][k]-phi[i][modulo(j-1,dimensions)][k])/2);
-          Ez[i][j][k] = -1*((phi[i][j][modulo(k+1,dimensions)]-phi[i][j][modulo(k-1,dimensions)])/2 );
+          Ez[i][j][k] = -1*((phi[i][j][modulo(k+1,dimensions)]-phi[i][j][modulo(k-1,dimensions)])/2);
         }
       }
     }
     memcpy(out_Exg,Ex,sizeof(Ex));
     memcpy(out_Eyg,Ey,sizeof(Ey));
+  }
+  else{
+  for(i=0 ; i<dimensions ; i++){
+      for(j=0 ; j<dimensions ; j++){
+        for(k=0 ; k<dimensions ; k++){
+          My[i][j][k] = -1*((phi[modulo(i+1,dimensions)][j][k]-phi[modulo(i-1,dimensions)][j][k])/2);
+          Mx[i][j][k] = 1*((phi[i][modulo(j+1,dimensions)][k]-phi[i][modulo(j-1,dimensions)][k])/2);
+        }
+      }
+    }
+    memcpy(out_Exg,Mx,sizeof(Ex));
+    memcpy(out_Eyg,My,sizeof(Ey));
+  }
+    memcpy(out_convg,conv,sizeof(conv));
+    memcpy(out_phig,phi,sizeof(phi));
+
+  return it;
+
+}
+
+int r(float * in_rhog,float * out_phig, float * out_convg, float * out_Exg, float * out_Eyg, float tresholdg, int field, float dphi){
+
+  int i,j,k, it;
+  int dimensions = 50;
+  int iterations = 100000;
+  float phi[50][50][50] ={{{0}}};
+  float lastphi[50][50][50] ={{{0}}};
+  float rho[50][50][50] = {{{0}}};
+  float Ex[50][50][50] = {{{0}}};
+  float Ey[50][50][50] = {{{0}}};
+  float Ez[50][50][50] = {{{0}}};
+  float Mx[50][50][50] = {{{0}}};
+  float My[50][50][50] = {{{0}}};
+  double sum = 0;
+  double diff = 1;
+  float conv[10000] = {0};
+  it = 0;
+
+  memcpy(rho,in_rhog,sizeof(rho));
+
+
+  while(diff>tresholdg){
+    memcpy(lastphi,phi,sizeof(phi));
+    sum =0;
+
+
+    for(i=1 ; i<dimensions-1 ; i++){
+      for(j=1 ; j<dimensions-1 ; j++){
+        for(k=1 ; k<dimensions-1 ; k++){
+          phi[i][j][k] = dphi*(1.0/6.0)*(phi[modulo(i+1,dimensions)][j][k]+phi[modulo(i-1,dimensions)][j][k] \
+                                  +phi[i][modulo(j+1,dimensions)][k]+phi[i][modulo(j-1,dimensions)][k] \
+                                  +phi[i][j][modulo(k+1,dimensions)]+phi[i][j][modulo(k-1,dimensions)] \
+                                  +rho[i][j][k]) \
+                                  +(1-dphi)*phi[i][j][k];
+        }
+      }
+    }
+    for(i=0 ; i<dimensions ; i++){
+      for(j=0 ; j<dimensions ; j++){
+        for(k=0 ; k<dimensions ; k++){
+          sum+= fabs(lastphi[i][j][k]-phi[i][j][k]);
+        }
+      }
+    }
+
+    diff = sum;
+    conv[it] = diff;
+    it++;
+  }
+
+  if( field == 0){
+
+  for(i=0 ; i<dimensions ; i++){
+      for(j=0 ; j<dimensions ; j++){
+        for(k=0 ; k<dimensions ; k++){
+          Ex[i][j][k] = -1*((phi[modulo(i+1,dimensions)][j][k]-phi[modulo(i-1,dimensions)][j][k])/2);
+          Ey[i][j][k] = -1*((phi[i][modulo(j+1,dimensions)][k]-phi[i][modulo(j-1,dimensions)][k])/2);
+          Ez[i][j][k] = -1*((phi[i][j][modulo(k+1,dimensions)]-phi[i][j][modulo(k-1,dimensions)])/2);
+        }
+      }
+    }
+    memcpy(out_Exg,Ex,sizeof(Ex));
+    memcpy(out_Eyg,Ey,sizeof(Ey));
+  }
+  else{
+  for(i=0 ; i<dimensions ; i++){
+      for(j=0 ; j<dimensions ; j++){
+        for(k=0 ; k<dimensions ; k++){
+          My[i][j][k] = -1*((phi[modulo(i+1,dimensions)][j][k]-phi[modulo(i-1,dimensions)][j][k])/2);
+          Mx[i][j][k] = 1*((phi[i][modulo(j+1,dimensions)][k]-phi[i][modulo(j-1,dimensions)][k])/2);
+        }
+      }
+    }
+    memcpy(out_Exg,Mx,sizeof(Ex));
+    memcpy(out_Eyg,My,sizeof(Ey));
+  }
     memcpy(out_convg,conv,sizeof(conv));
     memcpy(out_phig,phi,sizeof(phi));
 

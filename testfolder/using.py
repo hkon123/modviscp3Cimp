@@ -52,30 +52,12 @@ class Anim(object):
                 else:
                     self.phi[i,j] = -0.5#+np.random.uniform(-0.01,0.01)
 
-    def jacobi(self, treshold, rho):
-        phi,conv,Exj,Eyj,value = example_test.j(rho, treshold)
-        print(value)
-        y = np.zeros(value)
-        for i in range(value):
-            y[i] = conv[i]
-        cut = np.zeros((50,50))
-        xcutj = np.zeros((50,50))
-        ycutj = np.zeros((50,50))
-        for i in range(50):
-            for j in range(50):
-                    cut[i,j] =  phi[i,j,25]
-                    xcutj[i,j] =  Exj[i,j,1]
-                    ycutj[i,j] =  Eyj[i,j,1]
-        plt.quiver(xcutj,ycutj)#, scale_units='xy')
-        plt.show()
-        im = plt.imshow(cut, cmap = 'plasma')
-        plt.colorbar()
-        plt.show()
-        plt.plot(np.arange(0,value,1),y)
-        plt.show()
 
-    def gauss_seidel(self,treshold,rho):
-        phig,convg,Exg,Eyg,valueg = example_test.g(rho,treshold)
+    def poisson(self,treshold,rho, field, method):
+        if method == 0:
+            phig,convg,Exg,Eyg,valueg = example_test.g(rho,treshold, field)
+        else:
+            phig,convg,Exg,Eyg,valueg = example_test.j(rho,treshold, field)
         print(valueg)
         yg = np.zeros(valueg)
         for i in range(valueg):
@@ -86,17 +68,38 @@ class Anim(object):
         for i in range(50):
             for j in range(50):
                     cutg[i,j] =  phig[i,j,25]
-                    xcutg[i,j] =  Exg[i,j,1]
-                    ycutg[i,j] =  Eyg[i,j,1]
-        plt.quiver(xcutg,ycutg)#, scale_units='xy')
-        plt.show()
+                    xcutg[j,i] =  Exg[i,j,1]
+                    ycutg[j,i] =  Eyg[i,j,1]
+        plt.subplot(1,3,1)
         im = plt.imshow(cutg, cmap = 'plasma')
         plt.colorbar()
-        plt.show()
+        plt.subplot(1,3,2)
+        plt.quiver(xcutg,ycutg, scale = 1)#, units = 'width')#, scale_units='xy')
+        plt.subplot(1,3,3)
         plt.plot(np.arange(0,valueg,1),yg)
         plt.show()
 
+    def relaxed(self,treshold,rho,field):
+        converged = []
+        dphi = np.arange(1,2,0.1)
+        for i in dphi:
+            phi,conv,Ex,Ey,value = example_test.r(rho,treshold, field, i)
+            print('ok')
+            y = np.zeros(value)
+            for i in range(value):
+                y[i] = conv[i]
+            plt.plot(np.arange(0,value,1),y)
+            converged.append(value)
+        plt.show()
+        plt.plot(dphi,converged)
+        plt.show()
 
+'''
+rho = np.zeros((50,50,50))
+for i in range(50):
+    rho[25,25,i] = 1
+A=Anim().poisson(0.001, rho, 1, 0)
+'''
 rho = np.zeros((50,50,50))
 rho[25,25,25] = 1
-A=Anim().jacobi(0.001, rho)
+B = Anim().relaxed(0.001,rho,0)
